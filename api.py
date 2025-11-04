@@ -10,11 +10,10 @@ from datetime import datetime
 import csv
 
 import key     # credenciales de moodle
+from key import BASE_URL
 
 DATE_LAYOUT='%d/%m/%Y %H:%M'
 
-# URL base de tu Moodle
-BASE_URL = "https://aulavirtual34.educa.madrid.org/ies.jovellanos.fuenlabrada"
 DATABASE="moodle.db"
 
 
