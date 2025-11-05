@@ -1,127 +1,12 @@
 #!/usr/bin/python3
 
-from api import *
+from db import *
+from sync import *
+from search import *
+
 import sys
-import os
-import time
 import random
 
-registro_id=0    
-
-def sync_users_courses(session):
-    '''
-    Sincroniza los accesos y los participantes a todas las aulas
-    de una categoria.
-    '''
-
-    mensaje=""" 
-    Se van a sincronizar todos los participantes y accesos de todas las
-    aulas indexadas en cada categoría. 
-
-    Se tomará el índice de aulas de una categoría y se sincronizará 
-    la lista de participantes de cada una de estas aulas. Es recomendable
-    haber sincronizado y actualizado antes el índice de aulas de todas
-    las categorías.
-
-    """
-
-    ## Sacar todas las aulas de la tabla aulas
-    ## Igual que antes ver si el proceso ya comenzó anteriomente  y hay aulas
-    ## que ya han sido sincronizadas y seguir a partir de ellas
-    
-
-def sync_list_courses_one_category(session):
-    mensaje="""
-    Se van a sincronizar todos los cursos de una sola categoria. 
-
-    Sincronizar cursos implica únicamente listar los cursos que se
-    encuentran en cada categoría e indexar su nombre, su identificador
-    y su URL.  """
-    
-    cat_id = input("Indique el ID de la categoría que quiere sincronizar: ")
-
-    r_id=open_registry()
-    print()
-    error=False
-    try:
-        print (f"Sincronizando categoria {cat_id} ... ", end="")
-        #
-        # sync_courses_from_category(sesion,cat_id)
-        #
-        time.sleep(random.randint(3,8))
-    except KeyboardInterrupt:
-        print (f"AVISO: El proceso de sincronzación se ha interrumpido!")
-        error=True
-
-    if not error:
-        print ("[OK]")
-        close_registry(r_id,0,1)
-    else:
-        close_registry(r_id,0,0)
-
-
-def sync_list_courses(session):
-    '''
-    Sincroniza todos los cursos de todas las categorias
-    '''
-
-    mensaje="""
-    Se van a sincronizar todos los cursos de cada categoria. 
-
-    Sincronizar cursos implica únicamente listar los cursos que se
-    encuentran en cada categoría e indexar su nombre, su identificador
-    y su URL.  """
-
-    conn = sqlite3.connect(DATABASE)
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT id, nombre, url, sync FROM categorias where sync=False")
-    cat_sin_sync= cursor.fetchall()
-
-    cursor.execute("SELECT id, nombre, url, sync FROM categorias")
-    cat_all= cursor.fetchall()
-
-    os.system("clear")
-    print (mensaje)
-    print()
-    print()
-    print (f"Se han encontrado {len(cat_sin_sync)} sin sincronizar de un total de {len(cat_all)}")
-    while (True):
-        print (f"Indique si desea sincronizar todas o solo las que están pendientes")
-        print ()
-        print ("1 - Sincroniza solo las pendientes")
-        print ("2 - Sincroniza todas las categorias")
-        print ()
-        opcion = input("Elige una opción: ")
-        if (opcion == "1") or (opcion == "2"):
-            break
-
-    categorias=[]
-    print ("___________________________________________________________________\n")
-    if (opcion == 1):
-        print ("Sincronizando las categorias pendientes")
-        categorias=cat_sin_sync
-    else:
-        print ("Sincronizando todas las categorias")
-        categorias=cat_all
-
-
-    r_id=open_registry()
-    print()
-    synced=0
-    for categoria in categorias:
-        try:
-            print (f"Sincronizando categorias {synced}/{len(categorias)} ...", end="\r")
-            #
-            # sync_courses_from_category(sesion,categoria.id)
-            #
-            synced = synced+1
-            time.sleep(random.randint(3,8))
-        except KeyboardInterrupt:
-            print (f"AVISO: El proceso de sincronzación se ha interrumpido!")
-            break
-        
-    close_registry(r_id,0,synced)
 
 
 
@@ -132,9 +17,9 @@ def show_sync_menu(session):
             print ("\n\n\t GESTIÓN DEL AULA VIRTUAL")
             print ()
             print ("1 - Sincroniza categorias")
-            print ("2 - Sincroniza indice de aulas por categorias")
-            print ("3 - Sincroniza partipantes de aulas")
-            print ("4 - Sincroniza una sola categoría")
+            print ("2 - Sincroniza índice de aulas para varias categorías")
+            print ("3 - Sincroniza índice de aulas para una sola categoría")
+            print ("4 - Sincroniza partipantes de todas las aulas")
             print ("5 - Sincroniza los participantes de una sola aula")
             print ("6 - Cargar profesores del actual claustro")
             print ()
@@ -154,12 +39,11 @@ def show_sync_menu(session):
                 input ("\n\nPulsa intro para continuar ...")
 
             if (opcion == "3"):
-                sync_users_courses(session)
+                sync_list_courses_one_category(session)
                 input ("\n\nPulsa intro para continuar ...")
 
-
             if (opcion == "4"):
-                sync_list_courses_one_category(session)
+                sync_users_courses(session)
                 input ("\n\nPulsa intro para continuar ...")
 
             if (opcion == "5"):
@@ -185,6 +69,7 @@ def show_search_menu():
             print ("\n\n\t GESTIÓN DEL AULA VIRTUAL")
             print ()
             print ("1 - Buscar categoria")
+            print ("2 - Buscar usuario")
             print ()
             print ("0 - Menú principal")
             opcion=input("Elige una opción: ")
@@ -197,6 +82,10 @@ def show_search_menu():
                 search_category()
                 input ("\n\nPulsa intro para continuar ...")
 
+            if (opcion == "2"):
+                search_user()
+                input ("\n\nPulsa intro para continuar ...")
+
 
             if (opcion == "0"):
                 return
@@ -204,42 +93,15 @@ def show_search_menu():
         except KeyboardInterrupt:
             return
 
-    
-def search_category():
-
-    mensaje="""
-
-    Búsqueda de categorias a partir de su nombre.
-
-    """
-
-    conn = sqlite3.connect(DATABASE)
-    cursor = conn.cursor()
-
-
-    patron=input("Introduce el patrón a buscar en los nombres de las categorias: ")
-
-    # Buscar con LIKE (insensible a mayúsculas si se usa COLLATE NOCASE)
-    cursor.execute("""
-        SELECT id, nombre, url, sync
-        FROM categorias
-        WHERE nombre LIKE ? COLLATE NOCASE
-    """, (f"%{patron}%",))
-
-    resultados = cursor.fetchall()
-    conn.close()
-    
-    print()
-    print (f"Se han encontrado {len(resultados)} resultados: ")
-    print()
-    for c in resultados:
-        print (f"\t{c[0]} - {c[1]}")
-
 
 if (__name__=='__main__'):
 
     init_db()
-    session=init_session()
+    ses=init_session()
+    
+    if not any("MoodleSession" in cookie.name for cookie in ses.cookies):
+        print("⚠️ No hay cookie de sesión; el login falló.")
+        sys.exit()
 
     while(True):
 
@@ -261,7 +123,7 @@ if (__name__=='__main__'):
             print()
 
             if (opcion == "1"):
-                show_sync_menu(session)
+                show_sync_menu(ses)
                 #input ("\n\nPulsa intro para continuar ...")
                 
             if (opcion == "2"):
