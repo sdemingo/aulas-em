@@ -233,7 +233,7 @@ def search_category():
     print (f"Se han encontrado {len(resultados)} resultados: ")
     print()
     for c in resultados:
-        print (f"{c[0]}\t{c[1]}")
+        print (f"\t{c[0]} - {c[1]}")
 
 
 if (__name__=='__main__'):

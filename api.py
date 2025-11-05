@@ -256,7 +256,7 @@ def init_session():
 
 
 def init_db():
-    print ("Inicializando la base de datos ... ",end="")
+#    print ("Inicializando la base de datos ... ",end="")
 
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -319,22 +319,5 @@ def init_db():
     conn.commit()
     conn.close()
 
-    print ("[OK]")
-
-    
-
-# ##
-# ## Código principal
-# ##
-
-# if (__name__=='__main__'):
-
-    
-#     init_db()
-#     session=init_session()
-#     #ultima_conexion_curso(session,curso_id)
-#     #sync_categories(session)
-#     #sync_courses_from_category(session,56)
-#     sync_users_from_course(session,321)    
-
+#    print ("[OK]")
 
