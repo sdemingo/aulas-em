@@ -125,15 +125,9 @@ def sync_list_courses(session):
 
 
 
-if (__name__=='__main__'):
-
-    init_db()
-    session=init_session()
-
+def show_sync_menu(session):
     while(True):
-
         os.system("clear")
-
         try:
             print ("\n\n\t GESTIÓN DEL AULA VIRTUAL")
             print ()
@@ -142,14 +136,10 @@ if (__name__=='__main__'):
             print ("3 - Sincroniza partipantes de aulas")
             print ("4 - Sincroniza una sola categoría")
             print ("5 - Sincroniza los participantes de una sola aula")
+            print ("6 - Cargar profesores del actual claustro")
             print ()
-            print ("7 - Cargar profesores del actual claustro")
-            print ("8 - Limpiar base de datos")
-            print ()
-            print ("0 - Salir")
-            print()
+            print ("0 - Menú principal")
             opcion=input("Elige una opción: ")
-
 
             os.system("clear")
             print()
@@ -167,7 +157,7 @@ if (__name__=='__main__'):
                 sync_users_courses(session)
                 input ("\n\nPulsa intro para continuar ...")
 
-            
+
             if (opcion == "4"):
                 sync_list_courses_one_category(session)
                 input ("\n\nPulsa intro para continuar ...")
@@ -176,11 +166,109 @@ if (__name__=='__main__'):
                 sync_users_one_course(session)
                 input ("\n\nPulsa intro para continuar ...")
 
-            if (opcion == "7"):
+            if (opcion == "6"):
                 load_users()
                 input ("\n\nPulsa intro para continuar ...")
 
-            if (opcion == "8"):
+            if (opcion == "0"):
+                return
+
+        except KeyboardInterrupt:
+            return
+
+
+
+def show_search_menu():
+    while(True):
+        os.system("clear")
+        try:
+            print ("\n\n\t GESTIÓN DEL AULA VIRTUAL")
+            print ()
+            print ("1 - Buscar categoria")
+            print ()
+            print ("0 - Menú principal")
+            opcion=input("Elige una opción: ")
+
+            os.system("clear")
+            print()
+            print()
+
+            if (opcion == "1"):
+                search_category()
+                input ("\n\nPulsa intro para continuar ...")
+
+
+            if (opcion == "0"):
+                return
+
+        except KeyboardInterrupt:
+            return
+
+    
+def search_category():
+
+    mensaje="""
+
+    Búsqueda de categorias a partir de su nombre.
+
+    """
+
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
+
+    patron=input("Introduce el patrón a buscar en los nombres de las categorias: ")
+
+    # Buscar con LIKE (insensible a mayúsculas si se usa COLLATE NOCASE)
+    cursor.execute("""
+        SELECT id, nombre, url, sync
+        FROM categorias
+        WHERE nombre LIKE ? COLLATE NOCASE
+    """, (f"%{patron}%",))
+
+    resultados = cursor.fetchall()
+    conn.close()
+    
+    print()
+    print (f"Se han encontrado {len(resultados)} resultados: ")
+    print()
+    for c in resultados:
+        print (f"{c[0]}\t{c[1]}")
+
+
+if (__name__=='__main__'):
+
+    init_db()
+    session=init_session()
+
+    while(True):
+
+        os.system("clear")
+
+        try:
+            print ("\n\n\t GESTIÓN DEL AULA VIRTUAL")
+            print ()
+            print ("1 - Sincronizar e importar datos")
+            print ("2 - Buscar")
+            print ("3 - Reiniciar base de datos")
+            print ()
+            print ("0 - Salir")
+            print()
+            opcion=input("Elige una opción: ")
+
+            os.system("clear")
+            print()
+            print()
+
+            if (opcion == "1"):
+                show_sync_menu(session)
+                #input ("\n\nPulsa intro para continuar ...")
+                
+            if (opcion == "2"):
+                show_search_menu()
+                #input ("\n\nPulsa intro para continuar ...")
+
+            if (opcion == "3"):
                 sync_reset()
                 input ("\n\nPulsa intro para continuar ...")
 
