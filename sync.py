@@ -113,7 +113,7 @@ def sync_list_courses(session):
 
     categorias=[]
     print ("___________________________________________________________________\n")
-    if (opcion == 1):
+    if (opcion == "1"):
         print ("Sincronizando las categorias pendientes")
         categorias=cat_sin_sync
     else:
