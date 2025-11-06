@@ -1,3 +1,4 @@
+*.log
 key.py
 moodle.db
 claustro.*

@@ -113,6 +113,7 @@ if (__name__=='__main__'):
             print ("1 - Sincronizar e importar datos")
             print ("2 - Buscar")
             print ("3 - Reiniciar base de datos")
+            print ("4 - Exportar registros")
             print ()
             print ("0 - Salir")
             print()
@@ -134,6 +135,10 @@ if (__name__=='__main__'):
                 sync_reset()
                 input ("\n\nPulsa intro para continuar ...")
 
+            if (opcion == "4"):
+                export_logs()
+                input ("\n\nPulsa intro para continuar ...")
+                
             if (opcion == "0"):
                 break
 

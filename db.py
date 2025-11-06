@@ -13,46 +13,39 @@ from key import BASE_URL
 
 DATE_LAYOUT='%d/%m/%Y %H:%M'
 DATABASE="moodle.db"
+LOG_FILE="sync.log"
 
-
-def open_registry():
+def log(conn, texto):
     """
-    Abre un registro en la tabla registros indicando cuando ha comenzado
-    una sincronización
+    Crea un apunte en la tabla de registros
     """
-    conn = sqlite3.connect(DATABASE)
-    cursor = conn.cursor()
-
-    fecha=datetime.today().strftime(DATE_LAYOUT)
-    cursor.execute("""
-    INSERT INTO registros (inicio, fin, aulas_sync, categorias_sync)
-    VALUES (?, ?, ?, ?)
-    """, (fecha, "-", 0, 0))
-
-    conn.commit()
-    conn.close()    
-    return cursor.lastrowid
-
-
-
-def close_registry(r_id, aulas_sync, categorias_sync):
-    """
-    Cierra un registro en la base de datos indicando cuando ha
-    finalizado una sincronización y cuantas aulas y categorias
-    se han sincronizado con éxito.
-    """
-    conn = sqlite3.connect(DATABASE)
-    cursor = conn.cursor()
     
+    #conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
     fecha=datetime.today().strftime(DATE_LAYOUT)
     cursor.execute("""
-    UPDATE registros
-    SET fin = ?, aulas_sync = ?, categorias_sync = ?
-    WHERE id = ?
-    """, (fecha, aulas_sync, categorias_sync, r_id))
+    INSERT INTO registros (fecha, texto)
+    VALUES (?, ?)
+    """, (fecha, texto))
 
     conn.commit()
-    conn.close()    
+    #conn.close()    
+
+
+def export_logs():
+    
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT fecha,texto FROM registros")
+    logs = cursor.fetchall()
+
+    with open(LOG_FILE, "w+", encoding='utf-8') as logfile:
+        for l in logs:
+            logfile.write(l[0]+"\t"+l[1]+"\n")
+        
+    logfile.close()
 
 
 
@@ -126,7 +119,6 @@ def sync_reset():
     
     
 
-    
 
 def init_session():
     session = requests.Session()
@@ -193,10 +185,8 @@ def init_db():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS registros (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    inicio TEXT NOT NULL,
-    fin TEXT,
-    aulas_sync INTEGER,
-    categorias_sync INTEGER
+    fecha TEXT NOT NULL,
+    texto TEXT
     )
     """)
     

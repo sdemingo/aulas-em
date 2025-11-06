@@ -3,10 +3,22 @@ from db import *
 
 import os
 import time
+import random
 
 
+def wait():
+    """
+    Algoritmo de espera artificial para evitar sobrecargar el servidor.
+    Se esperará siempre entre 4 y 8 segundos. Un 25% de las veces además 
+    se doblará esta cantidad de tiempo
 
-registro_id=0    
+    """
+    delta=random.randint(1,4)
+    waitmore=1
+    if (delta == 4):
+        waitmore=2
+    time.sleep(random.randint(4,8)*waitmore)
+
 
 def sync_users_courses(session):
     """
@@ -43,24 +55,24 @@ def sync_list_courses_one_category(session):
     Sincronizar cursos implica únicamente listar los cursos que se
     encuentran en cada categoría e indexar su nombre, su identificador
     y su URL.  """
+
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
     
     cat_id = input("Indique el ID de la categoría que quiere sincronizar: ")
 
-    r_id=open_registry()
     print()
     error=False
     try:
         print (f"Sincronizando categoria {cat_id} ... ")
-        sync_courses_from_category(session,cat_id)
+        sync_courses_from_category(conn, session,cat_id)
     except KeyboardInterrupt:
         print (f"AVISO: El proceso de sincronzación se ha interrumpido!")
         error=True
 
-    if not error:
-        close_registry(r_id,0,1)
-    else:
-        close_registry(r_id,0,0)
-
+    conn.commit()
+    conn.close()
+    
 
 def sync_list_courses(session):
     """
@@ -109,23 +121,22 @@ def sync_list_courses(session):
         categorias=cat_all
 
 
-    r_id=open_registry()
     print()
+    log(conn, f"Inicio de la sincronización {len(categorias)} categorias y los índices de aulas que contienen")
+    
     synced=0
     for categoria in categorias:
         try:
             print (f"Sincronizando categorias {synced}/{len(categorias)} ...", end="\r")
-            #
-            #sync_courses_from_category(sesion,categoria.id)
-            #
+            #sync_courses_from_category(conn, sesion,categoria.id)
             synced = synced+1
-            time.sleep(random.randint(2,10))
+            wait()
         except KeyboardInterrupt:
+            log(conn, f"El proceso de sincronización de los índices de categorias se ha interrumpido. Se han sincronizado {synced} categorias")
             print (f"AVISO: El proceso de sincronzación se ha interrumpido!")
             break
         
-    close_registry(r_id,0,synced)
-
+    conn.close()
 
 
 def sync_users_from_course(sesion, aula_id):
@@ -167,12 +178,14 @@ def sync_users_from_course(sesion, aula_id):
         VALUES (:id_usuario, :id_aula, :tiempo)
         """, acceso)
 
+    log(conn, f"Se sincronizan los usuarios y accesos del aula {aula_id}")
+
     conn.commit()
     conn.close()
 
 
 
-def sync_courses_from_category(session, cid):
+def sync_courses_from_category(conn, session, cid):
     """
     Esta función descarga la lista de cursos de una categoria
     y los introduce en la tabla "cursos". Aunque un curso esté oculto
@@ -182,8 +195,8 @@ def sync_courses_from_category(session, cid):
     url = f"{BASE_URL}/course/index.php?categoryid="+str(cid)
     page = session.get(url)
     soup = BeautifulSoup(page.text, "html.parser")
-    conn = sqlite3.connect(DATABASE)
-    cursor = conn.cursor()
+    # conn = sqlite3.connect(DATABASE)
+    # cursor = conn.cursor()
 
 
     aulas = []
@@ -209,8 +222,10 @@ def sync_courses_from_category(session, cid):
     WHERE id = ?;
     """, (True, cid))
 
+    log(conn, f"Se sincroniza el índice de la categoria {cid}. Se han importado {len(aulas)} nombres de aulas")
+
     conn.commit()
-    conn.close()
+    #conn.close()
 
 
 
@@ -246,6 +261,9 @@ def sync_categories(sesion):
         INSERT OR REPLACE INTO categorias (id, nombre, url, sync)
         VALUES (:id, :nombre, :url, False)
         """, cat)
+
+    log(conn, f"Se sincronizan {len(categorias)} nombres de categorias")
+
 
     conn.commit()
     conn.close()
