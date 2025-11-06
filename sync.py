@@ -127,8 +127,8 @@ def sync_list_courses(session):
     synced=0
     for categoria in categorias:
         try:
-            print (f"Sincronizando categorias {synced}/{len(categorias)} ...", end="\r")
-            #sync_courses_from_category(conn, sesion,categoria.id)
+            print (f"Sincronizando categorias {synced}/{len(categorias)} ...")
+            sync_courses_from_category(conn, session, categoria[0])
             synced = synced+1
             wait()
         except KeyboardInterrupt:
@@ -196,8 +196,7 @@ def sync_courses_from_category(conn, session, cid):
     page = session.get(url)
     soup = BeautifulSoup(page.text, "html.parser")
     # conn = sqlite3.connect(DATABASE)
-    # cursor = conn.cursor()
-
+    cursor = conn.cursor()
 
     aulas = []
     for li in soup.select("div.coursename > a"):
