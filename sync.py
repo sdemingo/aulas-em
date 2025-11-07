@@ -83,7 +83,7 @@ def sync_users_courses(session):
     log(conn, f"Inicio de la sincronización de {len(cursos)} cursos y de sus participantes")
     
     synced=0
-    for curso in cursos
+    for curso in cursos:
         try:
             print (f"Sincronizando curso {synced}/{len(categorias)} ...")
             sync_users_from_course(conn,session,curso[0])
