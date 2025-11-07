@@ -1,5 +1,5 @@
 
-
+import os
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -13,7 +13,7 @@ from key import BASE_URL
 
 DATE_LAYOUT='%d/%m/%Y %H:%M'
 DATABASE="moodle.db"
-LOG_FILE="sync.log"
+LOG_FILE="/tmp/sync.log"
 
 def log(conn, texto):
     """
@@ -46,6 +46,8 @@ def export_logs():
             logfile.write(l[0]+"\t"+l[1]+"\n")
         
     logfile.close()
+
+    os.system("less "+LOG_FILE)
 
 
 
