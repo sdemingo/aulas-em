@@ -24,6 +24,7 @@ def wait():
     if ((wait_time % 7) == 0):
         sleep_time = sleep_time + 30
 
+    print (f"\t ..........[esperando {sleep_time} segundos] ..........")
     time.sleep(sleep_time)
 
 
@@ -44,12 +45,63 @@ def sync_users_courses(session):
 
     """
 
-    ## Sacar todas las aulas de la tabla aulas
-    ## Igual que antes ver si el proceso ya comenzó anteriomente  y hay aulas
-    ## que ya han sido sincronizadas y seguir a partir de ellas
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, categoria, nombre, url, sync FROM cursos where sync=False")
+    cursos_sin_sync= cursor.fetchall()
+
+    cursor.execute("SELECT id, categoria, nombre, url, sync FROM cursos")
+    cursos_all= cursor.fetchall()
+
+    os.system("clear")
+    print (mensaje)
+    print()
+    print()
+    print (f"Se han encontrado {len(cat_sin_sync)} cursos sin sincronizar de un total de {len(cat_all)}")
+    while (True):
+        print (f"Indique si desea sincronizar todos o solo los que están pendientes")
+        print ()
+        print ("1 - Sincroniza solo los pendientes")
+        print ("2 - Sincroniza todos los cursos")
+        print ()
+        opcion = input("Elige una opción: ")
+        if (opcion == "1") or (opcion == "2"):
+            break
 
 
+    cursos=[]
+    print ("___________________________________________________________________\n")
+    if (opcion == "1"):
+        print ("Sincronizando los cursos pendientes")
+        cursos=cursos_sin_sync
+    else:
+        print ("Sincronizando todos los cursos")
+        cursos=cursos_all
+
+    print()
+    log(conn, f"Inicio de la sincronización de {len(cursos)} cursos y de sus participantes")
     
+    synced=0
+    for curso in cursos
+        try:
+            print (f"Sincronizando curso {synced}/{len(categorias)} ...")
+            sync_users_from_course(conn,session,curso[0])
+            synced = synced+1
+            wait()
+        except KeyboardInterrupt:
+            log(conn, f"El proceso de sincronización de los cursos se ha interrumpido. Se han sincronizado {synced} cursos")
+            print (f"AVISO: El proceso de sincronzación se ha interrumpido!")
+            break
+        
+    conn.close()
+    
+
+
+
+
+
+
 
 def sync_list_courses_one_category(session):
     """
@@ -107,7 +159,7 @@ def sync_list_courses(session):
     print (mensaje)
     print()
     print()
-    print (f"Se han encontrado {len(cat_sin_sync)} sin sincronizar de un total de {len(cat_all)}")
+    print (f"Se han encontrado {len(cat_sin_sync)} categorias sin sincronizar de un total de {len(cat_all)}")
     while (True):
         print (f"Indique si desea sincronizar todas o solo las que están pendientes")
         print ()
@@ -129,7 +181,7 @@ def sync_list_courses(session):
 
 
     print()
-    log(conn, f"Inicio de la sincronización {len(categorias)} categorias y los índices de aulas que contienen")
+    log(conn, f"Inicio de la sincronización de {len(categorias)} categorias y los índices de aulas que contienen")
     
     synced=0
     for categoria in categorias:
@@ -146,7 +198,7 @@ def sync_list_courses(session):
     conn.close()
 
 
-def sync_users_from_course(sesion, aula_id):
+def sync_users_from_course(conn, sesion, aula_id):
     """
     Esta función descarga los participantes de un curso concreto
     indicado en aula_id. La información irá a parar a la tabla "usuarios"
@@ -158,7 +210,7 @@ def sync_users_from_course(sesion, aula_id):
     curso_page = sesion.get(curso_url)
     curso_soup = BeautifulSoup(curso_page.text, "html.parser")
     table = curso_soup.find("table",{"id":"participants"})
-    conn = sqlite3.connect(DATABASE)
+
     cursor = conn.cursor()
 
     usuarios=[]
@@ -188,7 +240,7 @@ def sync_users_from_course(sesion, aula_id):
     log(conn, f"Se sincronizan los usuarios y accesos del aula {aula_id}")
 
     conn.commit()
-    conn.close()
+
 
 
 
