@@ -5,6 +5,7 @@ import os
 import time
 import random
 
+wait_times=0
 
 def wait():
     """
@@ -13,11 +14,17 @@ def wait():
     se doblará esta cantidad de tiempo
 
     """
-    delta=random.randint(1,4)
-    waitmore=1
+    wait_times=+1
+
+    sleep_time=random.randint(4,8)
+    delta=random.randint(1,5)
     if (delta == 4):
-        waitmore=2
-    time.sleep(random.randint(4,8)*waitmore)
+        sleep_time=sleep_time*2
+
+    if ((wait_time % 7) == 0):
+        sleep_time = sleep_time + 30
+
+    time.sleep(sleep_time)
 
 
 def sync_users_courses(session):
