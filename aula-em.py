@@ -114,6 +114,7 @@ if (__name__=='__main__'):
             print ("2 - Buscar")
             print ("3 - Reiniciar base de datos")
             print ("4 - Exportar registros")
+            print ("5 - Estadísticas")
             print ()
             print ("0 - Salir")
             print()
@@ -137,6 +138,10 @@ if (__name__=='__main__'):
 
             if (opcion == "4"):
                 export_logs()
+                input ("\n\nPulsa intro para continuar ...")
+
+            if (opcion == "5"):
+                db_stats()
                 input ("\n\nPulsa intro para continuar ...")
                 
             if (opcion == "0"):

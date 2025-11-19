@@ -15,6 +15,49 @@ DATE_LAYOUT='%d/%m/%Y %H:%M'
 DATABASE="moodle.db"
 LOG_FILE="/tmp/sync.log"
 
+
+
+def db_stats():
+    
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
+    n_registros=0
+    n_cursos_sync=0
+    n_cursos=0
+    n_categorias=0
+    n_categorias_sync=0
+
+    try:
+            cursor.execute("SELECT COUNT(*) FROM registros")
+            n_registros=cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM cursos where sync=True")
+            n_cursos_sync= cursor.fetchone()[0]
+
+            cursor.execute("SELECT COUNT(*) FROM cursos")
+            n_cursos= cursor.fetchone()[0]
+
+            cursor.execute("SELECT COUNT(*) FROM categorias")
+            n_categorias= cursor.fetchone()[0]
+
+            cursor.execute("SELECT COUNT(*) FROM categorias where sync=True")
+            n_categorias_sync= cursor.fetchone()[0]
+    except:
+        None
+
+
+    print()
+    print()
+    print(f"\t * Número de categorias indexadas: {n_categorias}")
+    print(f"\t * Número de categorias cuyos índices de aulas se han descargado: {n_categorias_sync}")
+    print()
+    print(f"\t * Número aulas virtuales indexadas: {n_cursos}")
+    print(f"\t * Número aulas virtuales con usuarios y accesos sincronizados: {n_cursos_sync}")
+    print()
+    print(f"\t * Número de registros almacenados en eventos: {n_registros}")
+
+
 def log(conn, texto):
     """
     Crea un apunte en la tabla de registros
@@ -30,7 +73,6 @@ def log(conn, texto):
     """, (fecha, texto))
 
     conn.commit()
-    #conn.close()    
 
 
 def export_logs():
