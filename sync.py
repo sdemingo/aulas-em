@@ -297,6 +297,27 @@ def sync_categories(sesion):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
 
+
+    cursor.execute("SELECT COUNT(*) FROM categorias where sync=True")
+    n_categorias_sync= cursor.fetchone()[0]
+    opcion=0
+    if (n_categorias_sync > 0):    
+        print (f"Se han encontrado {n_categorias_sync} categorias ya sincronizadas anteriormente.")
+        print ("Si se realiza el proceso, esta sincronización se perderá y debera resincronizar los índices de aulas de nuevo")
+        while (True):
+            print (f"Indique si desea sincronizar las categorias o abortar el proceso")
+            print ()
+            print ("1 - Sincroniza los nombres de categorias")
+            print ("2 - Salir")
+            print ()
+            opcion = input("Elige una opción: ")
+            if (opcion == "1") or (opcion == "2"):
+                break
+    
+    if (opcion== "2"):
+        return
+
+
     categorias = []
     select = soup.find("select")
     if select:
