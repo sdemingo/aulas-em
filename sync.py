@@ -244,7 +244,7 @@ def sync_users_from_course(conn, sesion, aula_id):
 
     cursor = conn.cursor()
 
-    usuarios=[]
+    #usuarios=[]
     accesos=[]
 
     if table:
@@ -265,7 +265,14 @@ def sync_users_from_course(conn, sesion, aula_id):
         VALUES (:usuario, :aula, :rol, :tiempo)
         """, acceso)
 
-    log(conn, f"Se sincronizan los usuarios y accesos del aula {aula_id}")
+    # Actualizo el curso como sincronizado
+    cursor.execute("""
+    UPDATE cursos
+    SET sync = ?
+    WHERE id = ?;
+    """, (True, aula_id))
+
+    log(conn, f"Se sincronizan {len(accesos)} accesos del aula {aula_id}")
 
     conn.commit()
 
