@@ -203,20 +203,21 @@ def init_db():
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS accesos (
-    id_usuario TEXT,
-    id_aula INTEGER,
-    tiempo TEXT NOT NULL,
-    PRIMARY KEY (id_usuario,id_aula)
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario TEXT,
+    rol TEXT,
+    aula INTEGER,
+    tiempo TEXT NOT NULL
     )
     """)
 
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS usuarios (
-    id TEXT PRIMARY KEY,
-    nombre TEXT,
-    rol TEXT NOT NULL
-    )
-    """)
+    # cursor.execute("""
+    # CREATE TABLE IF NOT EXISTS usuarios (
+    # id TEXT PRIMARY KEY,
+    # nombre TEXT,
+    # rol TEXT NOT NULL
+    # )
+    # """)
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS claustro (

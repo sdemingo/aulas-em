@@ -55,7 +55,7 @@ def sync_users_courses(session):
     print (mensaje)
     print()
     print()
-    print (f"Se han encontrado {len(cat_sin_sync)} cursos sin sincronizar de un total de {len(cat_all)}")
+    print (f"Se han encontrado {len(cursos_sin_sync)} cursos sin sincronizar de un total de {len(cursos_all)}")
     while (True):
         print (f"Indique si desea sincronizar todos o solo los que están pendientes")
         print ()
@@ -82,7 +82,7 @@ def sync_users_courses(session):
     synced=0
     for curso in cursos:
         try:
-            print (f"Sincronizando curso {synced}/{len(categorias)} ...")
+            print (f"Sincronizando curso {synced}/{len(cursos)} ...")
             sync_users_from_course(conn,session,curso[0])
             synced = synced+1
             wait()
@@ -128,6 +128,40 @@ def sync_list_courses_one_category(session):
 
     conn.commit()
     conn.close()
+
+
+
+
+
+def sync_users_one_course(session):
+    """
+    Esta función pide el id de un aula y llama a 
+    sync_users_from_course pasándole ese id
+    """
+    mensaje="""
+    Se van a sincronizar los accesos de una sola aula. 
+
+    """
+
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    
+    c_id = input("Indique el ID del aula que quiere sincronizar: ")
+
+    print()
+    error=False
+    try:
+        print (f"Sincronizando accesos aula aula {c_id} ... ")
+        sync_users_from_course(conn, session,c_id)
+    except KeyboardInterrupt:
+        print (f"AVISO: El proceso de sincronzación se ha interrumpido!")
+        error=True
+
+    conn.commit()
+    conn.close()
+
+
+
     
 
 def sync_list_courses(session):
@@ -216,22 +250,19 @@ def sync_users_from_course(conn, sesion, aula_id):
     if table:
         filas = table.find_all("tr")
         for i, fila in enumerate(filas, start=1):
-            celdas = fila.find_all(["td", "th"])  # captura tanto encabezados como celdas
+            celdas = fila.find_all(["td"])  # captura tanto encabezados como celdas
             valores = [celda.get_text(strip=True) for celda in celdas]
-            usuarios.append({"id":valores[2],"nombre":valores[1],"rol":valores[3]})
-            accesos.append({"id_usuario":valores[2],"id_aula":aula_id,"tiempo":valores[5]})
-
-    for usuario in usuarios:
-        cursor.execute("""
-        INSERT OR REPLACE INTO usuarios (id, nombre, rol)
-        VALUES (:id, :nombre, :rol)
-        """, usuario)
+            if (len(valores)>=3):
+                usuario=valores[0].removeprefix("Seleccionar '").strip("' ")
+                if (usuario != ""):
+                    accesos.append({"usuario":usuario,
+                                "aula":aula_id,"rol":valores[1],"tiempo":valores[3]})
 
     print (f"Sincronizando {len(accesos)} accesos al aula {aula_id}  ... ")
     for acceso in accesos:
         cursor.execute("""
-        INSERT OR REPLACE INTO accesos (id_usuario, id_aula, tiempo)
-        VALUES (:id_usuario, :id_aula, :tiempo)
+        INSERT OR REPLACE INTO accesos (usuario, aula, rol, tiempo)
+        VALUES (:usuario, :aula, :rol, :tiempo)
         """, acceso)
 
     log(conn, f"Se sincronizan los usuarios y accesos del aula {aula_id}")
