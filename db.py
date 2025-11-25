@@ -91,17 +91,31 @@ def dias_acceso_mas_reciente(accesos):
     for acceso in accesos:
         info=acceso[3]
         if "nunca" in info.lower():
-            reciente=10*365
-        else:
-            patron = r'(\d+)\s*años?\s+(\d+)\s*días?'
-            m = re.search(patron, info, re.IGNORECASE)
+            reciente=1000000
+        else: 
+            tiempo=reciente
+            # 1) Caso con años y días
+            patron_completo = r'(\d+)\s*años?\s+(\d+)\s*días?'
+            m = re.search(patron_completo, info, re.IGNORECASE)
             if m:
                 años = int(m.group(1))
                 dias = int(m.group(2))
                 tiempo = años * 365 + dias
-                if (tiempo < reciente):
-                    reciente = tiempo
-    
+
+            # 2) Caso solo días — PERO evitando que capture algo que ya pertenece al patrón anterior
+            patron_solo_dias = r'(\d+)\s*días?'
+            m = re.search(patron_solo_dias, info, re.IGNORECASE)
+            if m:
+                dias = int(m.group(1))
+
+                # Verificamos si este "X días" NO viene de un patrón de "años Y días"
+                texto_antes = info[:m.start()]
+                if not re.search(r'\d+\s*años?\s*$', texto_antes, re.IGNORECASE):
+                    tiempo =  dias
+
+            if (tiempo < reciente):
+                reciente = tiempo
+
     return reciente
 
 
@@ -128,21 +142,25 @@ def aula_abandonada(accesos):
     ## Condición 1: Que tenga menos de tres accesos o participantes
     cond1 = (len(accesos) <= 3)
 
-    ## Condición 2: Todos los accesos son desde hace dos años o mas
-    cond2=True
-    for acceso in accesos:
-        info=acceso[3]
-        if "nunca" in info.lower():
-            cond2=cond2 and True 
-        else:
-            patron = r'(\d+)\s*año?'
-            m = re.search(patron, info, re.IGNORECASE)    
-            if m:
-                años = int(m.group(1))
-                if (años >=2):
-                    cond2=cond2 and True
-                else:
-                    cond2=cond2 and False
+    ## Condición 2: El acceso mas recientes es de hace más de dos años
+    if (dias_acceso_mas_reciente(accesos) > 2*365):
+        cond2=True
+    else:
+        cond2=False
+
+    # for acceso in accesos:
+    #     info=acceso[3]
+    #     if "nunca" in info.lower():
+    #         cond2=cond2 and True 
+    #     else:
+    #         patron = r'(\d+)\s*año?'
+    #         m = re.search(patron, info, re.IGNORECASE)    
+    #         if m:
+    #             años = int(m.group(1))
+    #             if (años >=2):
+    #                 cond2=cond2 and True
+    #             else:
+    #                 cond2=cond2 and False
 
     return cond1 and cond2
 
