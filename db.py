@@ -57,6 +57,8 @@ def db_stats():
                 if (len(accesos_por_aula)==0):
                     cursos_vacios.append(curso)
                 elif (aula_abandonada(accesos_por_aula)):                    
+                    # Añado al curso los accesos y los días del mas reciente
+                    curso = curso + (len(accesos_por_aula), dias_acceso_mas_reciente(accesos_por_aula))
                     cursos_casi_vacios.append(curso)
             
     except Exception as ex:
@@ -76,6 +78,8 @@ def db_stats():
     print()
     print(f"\t * Número de registros almacenados en eventos: {n_registros}")
 
+    export_courses(cursos_vacios,cursos_casi_vacios)
+
 
 
 def dias_acceso_mas_reciente(accesos):
@@ -84,13 +88,14 @@ def dias_acceso_mas_reciente(accesos):
     mas reciente a un aula.
     """
 
-    reciente=10*365
+    reciente=1000000
     for acceso in accesos:
-        if "nunca" in acceso.lower():
+        info=acceso[3]
+        if "nunca" in info.lower():
             reciente=10*365
         else:
             patron = r'(\d+)\s*años?\s+(\d+)\s*días?'
-            m = re.search(patron, acceso, re.IGNORECASE)
+            m = re.search(patron, info, re.IGNORECASE)
             if m:
                 años = int(m.group(1))
                 dias = int(m.group(2))
@@ -133,8 +138,22 @@ def aula_abandonada(accesos):
 
 
 
-#def export_courses(aulas):
+def export_courses(vacias, casi_vacias):
     
+    with open("aulas_vacias.csv", "w", encoding='utf-8') as vaciasfile:
+        vaciasfile.write("ID;NOMBRE;URL\n")
+        for a in vacias:
+            vaciasfile.write(";".join(str(i) for i in a)+"\n")
+        
+    vaciasfile.close()
+
+    with open("aulas_casi_vacias.csv", "w", encoding='utf-8') as casivaciasfile:
+        casivaciasfile.write("ID;NOMBRE;URL;PARTICIPANTES;ACCESO MÁS RECIENTE\n")
+        for a in casi_vacias:
+            casivaciasfile.write(";".join(str(i) for i in a)+"\n")
+        
+    casivaciasfile.close()
+        
 
     
 def log(conn, texto):
