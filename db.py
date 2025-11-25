@@ -57,8 +57,7 @@ def db_stats():
                 if (len(accesos_por_aula)==0):
                     cursos_vacios.append(curso)
                 elif (aula_abandonada(accesos_por_aula)):                    
-                    # Añado al curso los accesos y los días del mas reciente
-                    curso = curso + (len(accesos_por_aula), dias_acceso_mas_reciente(accesos_por_aula))
+                    curso = curso + (len(accesos_por_aula), nombre_participantes(accesos_por_aula), dias_acceso_mas_reciente(accesos_por_aula))
                     cursos_casi_vacios.append(curso)
             
     except Exception as ex:
@@ -106,6 +105,17 @@ def dias_acceso_mas_reciente(accesos):
     return reciente
 
 
+def nombre_participantes(accesos):
+    """
+    Esta función retorna el nombre de los participantes
+    en los accesos de un aula en forma de string
+    """
+    lista=[]
+    for acceso in accesos:
+        lista.append(acceso[1])
+
+    return ", ".join(lista)
+
 
 
 
@@ -115,8 +125,8 @@ def aula_abandonada(accesos):
     Ver criterios en los comentarios de cada condición.
     """
     
-    ## Condición 1: Que tenga menos de cinco accesos o participantes
-    cond1 = (len(accesos) <= 5)
+    ## Condición 1: Que tenga menos de tres accesos o participantes
+    cond1 = (len(accesos) <= 3)
 
     ## Condición 2: Todos los accesos son desde hace dos años o mas
     cond2=True
@@ -148,7 +158,7 @@ def export_courses(vacias, casi_vacias):
     vaciasfile.close()
 
     with open("aulas_casi_vacias.csv", "w", encoding='utf-8') as casivaciasfile:
-        casivaciasfile.write("ID;NOMBRE;URL;PARTICIPANTES;ACCESO MÁS RECIENTE\n")
+        casivaciasfile.write("ID;NOMBRE;URL;Nº PARTICIPANTES;LISTA PARTICIPANTES;ACCESO MÁS RECIENTE;\n")
         for a in casi_vacias:
             casivaciasfile.write(";".join(str(i) for i in a)+"\n")
         
