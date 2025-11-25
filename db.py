@@ -29,6 +29,7 @@ def db_stats():
     n_categorias_sync=0
 
     cursos_casi_vacios=[]
+    cursos_vacios=[]
 
     try:
             cursor.execute("SELECT COUNT(*) FROM registros")
@@ -53,7 +54,9 @@ def db_stats():
                 curso_id=curso[0]
                 curso_name=curso[1]
                 accesos_por_aula = cursor.execute("SELECT id,usuario,aula,info FROM accesos WHERE aula="+str(curso_id)).fetchall()
-                if (aula_abandonada(accesos_por_aula)):                    
+                if (len(accesos_por_aula)==0):
+                    cursos_vacios.append(curso)
+                elif (aula_abandonada(accesos_por_aula)):                    
                     cursos_casi_vacios.append(curso)
             
     except Exception as ex:
@@ -69,8 +72,34 @@ def db_stats():
     print(f"\t * Número aulas virtuales con usuarios y accesos sincronizados: {n_cursos_sync}")
     print()
     print(f"\t * Número aulas virtuales abandonadas: {len(cursos_casi_vacios)}")
+    print(f"\t * Número aulas virtuales totalmente vacías: {len(cursos_vacios)}")
     print()
     print(f"\t * Número de registros almacenados en eventos: {n_registros}")
+
+
+
+def dias_acceso_mas_reciente(accesos):
+    """
+    Esta función retorna el número de días cuando se produjo el acceso
+    mas reciente a un aula.
+    """
+
+    reciente=10*365
+    for acceso in accesos:
+        if "nunca" in acceso.lower():
+            reciente=10*365
+        else:
+            patron = r'(\d+)\s*años?\s+(\d+)\s*días?'
+            m = re.search(patron, acceso, re.IGNORECASE)
+            if m:
+                años = int(m.group(1))
+                dias = int(m.group(2))
+                tiempo = años * 365 + dias
+                if (tiempo < reciente):
+                    reciente = tiempo
+    
+    return reciente
+
 
 
 
@@ -92,7 +121,7 @@ def aula_abandonada(accesos):
             cond2=cond2 and True 
         else:
             patron = r'(\d+)\s*año?'
-            m = re.search(patron, info)    
+            m = re.search(patron, info, re.IGNORECASE)    
             if m:
                 años = int(m.group(1))
                 if (años >=2):
@@ -100,10 +129,12 @@ def aula_abandonada(accesos):
                 else:
                     cond2=cond2 and False
 
-
-
     return cond1 and cond2
 
+
+
+#def export_courses(aulas):
+    
 
     
 def log(conn, texto):
@@ -124,7 +155,9 @@ def log(conn, texto):
 
 
 def export_logs():
-    
+    """
+    Esta función exporta los eventos a un fichero de texto
+    """
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
 
