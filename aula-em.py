@@ -6,7 +6,9 @@ from search import *
 
 import sys
 import random
+import time
 
+RETRY_TIME=10
 
 
 
@@ -19,8 +21,10 @@ def show_sync_menu(session):
             print ("1 - Sincroniza categorias")
             print ("2 - Sincroniza índice de aulas para varias categorías")
             print ("3 - Sincroniza índice de aulas para una sola categoría")
+            print ()
             print ("4 - Sincroniza partipantes de todas las aulas")
             print ("5 - Sincroniza los participantes de una sola aula")
+            print ()
             print ("6 - Cargar profesores del actual claustro")
             print ()
             print ("0 - Menú principal")
@@ -29,33 +33,42 @@ def show_sync_menu(session):
             os.system("clear")
             print()
             print()
+            
+            while(True): # Reintentos de conexión por si falla
+                try:
+                    if (opcion == "1"):
+                        sync_categories(session)
+                        input ("\n\nPulsa intro para continuar ...")
 
-            if (opcion == "1"):
-                sync_categories(session)
-                input ("\n\nPulsa intro para continuar ...")
+                    if (opcion == "2"):
+                        sync_list_courses(session)
+                        input ("\n\nPulsa intro para continuar ...")
 
-            if (opcion == "2"):
-                sync_list_courses(session)
-                input ("\n\nPulsa intro para continuar ...")
+                    if (opcion == "3"):
+                        sync_list_courses_one_category(session)
+                        input ("\n\nPulsa intro para continuar ...")
 
-            if (opcion == "3"):
-                sync_list_courses_one_category(session)
-                input ("\n\nPulsa intro para continuar ...")
+                    if (opcion == "4"):
+                        sync_users_courses(session)
+                        input ("\n\nPulsa intro para continuar ...")
 
-            if (opcion == "4"):
-                sync_users_courses(session)
-                input ("\n\nPulsa intro para continuar ...")
+                    if (opcion == "5"):
+                        sync_users_one_course(session)
+                        input ("\n\nPulsa intro para continuar ...")
 
-            if (opcion == "5"):
-                sync_users_one_course(session)
-                input ("\n\nPulsa intro para continuar ...")
+                    if (opcion == "6"):
+                        load_users()
+                        input ("\n\nPulsa intro para continuar ...")
 
-            if (opcion == "6"):
-                load_users()
-                input ("\n\nPulsa intro para continuar ...")
+                    if (opcion == "0"):
+                        return
 
-            if (opcion == "0"):
-                return
+                    break # operación concluida. Salimos
+
+                except ConnectionError as c_err:
+                   print ("Error de conexión: "+str(c_err))
+                   print (f"Se reintenta en {RETRY_TIME} segundos")
+                   time.sleep(RETRY_TIME)
 
         except KeyboardInterrupt:
             return
@@ -149,4 +162,7 @@ if (__name__=='__main__'):
 
         except KeyboardInterrupt:
             print()
+            sys.exit()
+        except Exception as ex:
+            print (f"ERROR: {ex}")
             sys.exit()
