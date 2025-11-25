@@ -244,7 +244,6 @@ def sync_users_from_course(conn, sesion, aula_id):
 
     cursor = conn.cursor()
 
-    #usuarios=[]
     accesos=[]
 
     if table:
@@ -256,13 +255,16 @@ def sync_users_from_course(conn, sesion, aula_id):
                 usuario=valores[0].removeprefix("Seleccionar '").strip("' ")
                 if (usuario != ""):
                     accesos.append({"usuario":usuario,
-                                "aula":aula_id,"rol":valores[1],"tiempo":valores[3]})
+                                "aula":aula_id,"info":";".join(valores[1:])})
+
+    # for acceso in accesos:
+    #     print  (acceso)
 
     print (f"Sincronizando {len(accesos)} accesos al aula {aula_id}  ... ")
     for acceso in accesos:
         cursor.execute("""
-        INSERT OR REPLACE INTO accesos (usuario, aula, rol, tiempo)
-        VALUES (:usuario, :aula, :rol, :tiempo)
+        INSERT OR REPLACE INTO accesos (usuario, aula, info)
+        VALUES (:usuario, :aula, :info)
         """, acceso)
 
     # Actualizo el curso como sincronizado

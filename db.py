@@ -28,6 +28,8 @@ def db_stats():
     n_categorias=0
     n_categorias_sync=0
 
+    cursos_casi_vacios=[]
+
     try:
             cursor.execute("SELECT COUNT(*) FROM registros")
             n_registros=cursor.fetchone()[0]
@@ -43,8 +45,19 @@ def db_stats():
 
             cursor.execute("SELECT COUNT(*) FROM categorias where sync=True")
             n_categorias_sync= cursor.fetchone()[0]
-    except:
-        None
+
+            cursor.execute("SELECT id,nombre,url FROM cursos where sync=True")
+            cursos_synced= cursor.fetchall()            
+            
+            for curso in cursos_synced:
+                curso_id=curso[0]
+                curso_name=curso[1]
+                accesos_por_aula = cursor.execute("SELECT id,usuario,aula,info FROM accesos WHERE aula="+str(curso_id)).fetchall()
+                if (aula_abandonada(accesos_por_aula)):                    
+                    cursos_casi_vacios.append(curso)
+            
+    except Exception as ex:
+        print (ex)
 
 
     print()
@@ -55,9 +68,44 @@ def db_stats():
     print(f"\t * Número aulas virtuales indexadas: {n_cursos}")
     print(f"\t * Número aulas virtuales con usuarios y accesos sincronizados: {n_cursos_sync}")
     print()
+    print(f"\t * Número aulas virtuales abandonadas: {len(cursos_casi_vacios)}")
+    print()
     print(f"\t * Número de registros almacenados en eventos: {n_registros}")
 
 
+
+
+def aula_abandonada(accesos):
+    """
+    Recibe la lista de accesos de un aula y comprueba los criterios para considerarla abandonada
+    Ver criterios en los comentarios de cada condición.
+    """
+    
+    ## Condición 1: Que tenga menos de cinco accesos o participantes
+    cond1 = (len(accesos) <= 5)
+
+    ## Condición 2: Todos los accesos son desde hace dos años o mas
+    cond2=True
+    for acceso in accesos:
+        info=acceso[3]
+        if "nunca" in info.lower():
+            cond2=cond2 and True 
+        else:
+            patron = r'(\d+)\s*año?'
+            m = re.search(patron, info)    
+            if m:
+                años = int(m.group(1))
+                if (años >=2):
+                    cond2=cond2 and True
+                else:
+                    cond2=cond2 and False
+
+
+
+    return cond1 and cond2
+
+
+    
 def log(conn, texto):
     """
     Crea un apunte en la tabla de registros
@@ -90,6 +138,7 @@ def export_logs():
     logfile.close()
 
     os.system("less "+LOG_FILE)
+
 
 
 
@@ -205,19 +254,10 @@ def init_db():
     CREATE TABLE IF NOT EXISTS accesos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     usuario TEXT,
-    rol TEXT,
     aula INTEGER,
-    tiempo TEXT NOT NULL
+    info TEXT
     )
     """)
-
-    # cursor.execute("""
-    # CREATE TABLE IF NOT EXISTS usuarios (
-    # id TEXT PRIMARY KEY,
-    # nombre TEXT,
-    # rol TEXT NOT NULL
-    # )
-    # """)
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS claustro (

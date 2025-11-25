@@ -1,5 +1,5 @@
 *.log
 key.py
-moodle.db
+*.db
 claustro.*
 __pycache__
