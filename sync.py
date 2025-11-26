@@ -55,14 +55,14 @@ def sync_users_courses(session):
     print (mensaje)
     print()
     print()
-    print (f"Se han encontrado {len(cursos_sin_sync)} cursos sin sincronizar de un total de {len(cursos_all)}")
+    print (f"\tSe han encontrado {len(cursos_sin_sync)} cursos sin sincronizar de un total de {len(cursos_all)}")
     while (True):
-        print (f"Indique si desea sincronizar todos o solo los que están pendientes")
+        print (f"\tIndique si desea sincronizar todos o solo los que están pendientes")
         print ()
-        print ("1 - Sincroniza solo los pendientes")
-        print ("2 - Sincroniza todos los cursos")
+        print ("\t1 - Sincroniza solo los pendientes")
+        print ("\t2 - Sincroniza todos los cursos")
         print ()
-        opcion = input("Elige una opción: ")
+        opcion = input("\tElige una opción: ")
         if (opcion == "1") or (opcion == "2"):
             break
 
@@ -70,10 +70,10 @@ def sync_users_courses(session):
     cursos=[]
     print ("___________________________________________________________________\n")
     if (opcion == "1"):
-        print ("Sincronizando los cursos pendientes")
+        print ("\tSincronizando los cursos pendientes")
         cursos=cursos_sin_sync
     else:
-        print ("Sincronizando todos los cursos")
+        print ("\tSincronizando todos los cursos")
         cursos=cursos_all
 
     print()
@@ -82,7 +82,7 @@ def sync_users_courses(session):
     synced=0
     for curso in cursos:
         try:
-            print (f"Sincronizando curso {synced}/{len(cursos)} ...")
+            print (f"\tSincronizando curso {synced}/{len(cursos)} ...")
             sync_users_from_course(conn,session,curso[0])
             synced = synced+1
             wait()
@@ -115,12 +115,12 @@ def sync_list_courses_one_category(session):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     
-    cat_id = input("Indique el ID de la categoría que quiere sincronizar: ")
+    cat_id = input("\tIndique el ID de la categoría que quiere sincronizar: ")
 
     print()
     error=False
     try:
-        print (f"Sincronizando categoria {cat_id} ... ")
+        print (f"\tSincronizando categoria {cat_id} ... ")
         sync_courses_from_category(conn, session,cat_id)
     except KeyboardInterrupt:
         print (f"AVISO: El proceso de sincronzación se ha interrumpido!")
@@ -146,12 +146,12 @@ def sync_users_one_course(session):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     
-    c_id = input("Indique el ID del aula que quiere sincronizar: ")
+    c_id = input("\tIndique el ID del aula que quiere sincronizar: ")
 
     print()
     error=False
     try:
-        print (f"Sincronizando accesos aula aula {c_id} ... ")
+        print (f"\tSincronizando accesos aula aula {c_id} ... ")
         sync_users_from_course(conn, session,c_id)
     except KeyboardInterrupt:
         print (f"AVISO: El proceso de sincronzación se ha interrumpido!")
@@ -190,24 +190,24 @@ def sync_list_courses(session):
     print (mensaje)
     print()
     print()
-    print (f"Se han encontrado {len(cat_sin_sync)} categorias sin sincronizar de un total de {len(cat_all)}")
+    print (f"\tSe han encontrado {len(cat_sin_sync)} categorias sin sincronizar de un total de {len(cat_all)}")
     while (True):
-        print (f"Indique si desea sincronizar todas o solo las que están pendientes")
+        print (f"\tIndique si desea sincronizar todas o solo las que están pendientes")
         print ()
-        print ("1 - Sincroniza solo las pendientes")
-        print ("2 - Sincroniza todas las categorias")
+        print ("\t1 - Sincroniza solo las pendientes")
+        print ("\t2 - Sincroniza todas las categorias")
         print ()
-        opcion = input("Elige una opción: ")
+        opcion = input("\tElige una opción: ")
         if (opcion == "1") or (opcion == "2"):
             break
 
     categorias=[]
     print ("___________________________________________________________________\n")
     if (opcion == "1"):
-        print ("Sincronizando las categorias pendientes")
+        print ("\tSincronizando las categorias pendientes")
         categorias=cat_sin_sync
     else:
-        print ("Sincronizando todas las categorias")
+        print ("\tSincronizando todas las categorias")
         categorias=cat_all
 
 
@@ -217,7 +217,7 @@ def sync_list_courses(session):
     synced=0
     for categoria in categorias:
         try:
-            print (f"Sincronizando categorias {synced}/{len(categorias)} ...")
+            print (f"\tSincronizando categorias {synced}/{len(categorias)} ...")
             sync_courses_from_category(conn, session, categoria[0])
             synced = synced+1
             wait()
@@ -260,7 +260,7 @@ def sync_users_from_course(conn, sesion, aula_id):
     # for acceso in accesos:
     #     print  (acceso)
 
-    print (f"Sincronizando {len(accesos)} accesos al aula {aula_id}  ... ")
+    print (f"\tSincronizando {len(accesos)} accesos al aula {aula_id}  ... ")
     for acceso in accesos:
         cursor.execute("""
         INSERT OR REPLACE INTO accesos (usuario, aula, info)
@@ -303,7 +303,7 @@ def sync_courses_from_category(conn, session, cid):
             course_id = int(match.group(1))
         aulas.append({"nombre": nombre, "url": enlace, "id":course_id, "categoria":cid})
 
-    print (f"Sincronizando {len(aulas)} aulas de la categoria {cid}  ... ")
+    print (f"\tSincronizando {len(aulas)} aulas de la categoria {cid}  ... ")
     for aula in aulas:
         cursor.execute("""
         INSERT OR REPLACE INTO cursos (id, nombre, url, categoria, sync)
@@ -342,15 +342,15 @@ def sync_categories(sesion):
     n_categorias_sync= cursor.fetchone()[0]
     opcion=0
     if (n_categorias_sync > 0):    
-        print (f"Se han encontrado {n_categorias_sync} categorias ya sincronizadas anteriormente.")
-        print ("Si se realiza el proceso, esta sincronización se perderá y debera resincronizar los índices de aulas de nuevo")
+        print (f"\tSe han encontrado {n_categorias_sync} categorias ya sincronizadas anteriormente.")
+        print ("\tSi se realiza el proceso, esta sincronización se perderá y debera resincronizar los índices de aulas de nuevo")
         while (True):
-            print (f"Indique si desea sincronizar las categorias o abortar el proceso")
+            print (f"\tIndique si desea sincronizar las categorias o abortar el proceso")
             print ()
-            print ("1 - Sincroniza los nombres de categorias")
-            print ("2 - Salir")
+            print ("\t1 - Sincroniza los nombres de categorias")
+            print ("\t2 - Salir")
             print ()
-            opcion = input("Elige una opción: ")
+            opcion = input("\tElige una opción: ")
             if (opcion == "1") or (opcion == "2"):
                 break
     
@@ -371,7 +371,7 @@ def sync_categories(sesion):
 
             categorias.append({"nombre": texto, "url": url,"id":cat_id})
 
-    print (f"Sincronizando {len(categorias)} categorias  ... ")
+    print (f"\tSincronizando {len(categorias)} categorias  ... ")
     for cat in categorias:
         cursor.execute("""
         INSERT OR REPLACE INTO categorias (id, nombre, url, sync)
