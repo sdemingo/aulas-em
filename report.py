@@ -14,7 +14,7 @@ def generate_report(vacias, casi_vacias):
     fr1 = pd.DataFrame(vacias, columns=columnas)
 
 
-    columnas = ["ID","NOMBRE","Nº","LISTA PARTICIPANTES","ACCESO MÁS RECIENTE"]
+    columnas = ["ID","NOMBRE","Nº","LISTA PARTICIPANTES","ACCESO MÁS RECIENTE","AUSENTE"]
     fr2 = pd.DataFrame(casi_vacias, columns=columnas)
 
     with pd.ExcelWriter("salida.xlsx", engine="openpyxl") as writer:

@@ -7,7 +7,7 @@ import json
 import sqlite3
 from datetime import datetime
 import csv
-
+import unicodedata
 import key     # credenciales de moodle
 from key import BASE_URL
 
@@ -33,6 +33,7 @@ def db_stats():
 
     cursos_casi_vacios=[]
     cursos_vacios=[]
+    profesores_claustro={}
 
     try:
             cursor.execute("SELECT COUNT(*) FROM registros")
@@ -50,18 +51,28 @@ def db_stats():
             cursor.execute("SELECT COUNT(*) FROM categorias where sync=True")
             n_categorias_sync= cursor.fetchone()[0]
 
-            #cursor.execute("SELECT id,nombre,url FROM cursos where sync=True")
             cursor.execute("SELECT id,nombre FROM cursos where sync=True")
-            cursos_synced= cursor.fetchall()            
-            
+            cursos_synced= cursor.fetchall()
+
+            cursor.execute("SELECT id,nombre,apellidos FROM claustro")
+            claustro=cursor.fetchall()
+
+            for profesor in claustro:
+                nombre_completo=profesor[1]+profesor[2]
+                nombre_saneado = sanea_nombre(nombre_completo)
+                profesores_claustro[nombre_saneado]=nombre_completo
+
+
             for curso in cursos_synced:
                 curso_id=curso[0]
                 curso_name=curso[1]
                 accesos_por_aula = cursor.execute("SELECT id,usuario,aula,info FROM accesos WHERE aula="+str(curso_id)).fetchall()
                 if (len(accesos_por_aula)==0):
                     cursos_vacios.append(curso)
-                elif (aula_abandonada(accesos_por_aula)):                    
-                    curso = curso + (len(accesos_por_aula), nombre_participantes(accesos_por_aula), dias_acceso_mas_reciente(accesos_por_aula))
+                elif (aula_abandonada(accesos_por_aula)):          
+                    participantes=nombre_participantes(accesos_por_aula)
+                    fuera=participantes_fuera_de_claustro(participantes, profesores_claustro)
+                    curso = curso + (len(accesos_por_aula), participantes, dias_acceso_mas_reciente(accesos_por_aula), fuera)
                     cursos_casi_vacios.append(curso)
             
     except Exception as ex:
@@ -82,6 +93,41 @@ def db_stats():
     print(f"\t * Número de registros almacenados en eventos: {n_registros}")
 
     report.generate_report(cursos_vacios,cursos_casi_vacios)
+
+
+def participantes_fuera_de_claustro(participantes, claustro):
+    """
+    Esta función retorna True si todos los participantes de un aula no pertenecen al claustro
+    """
+    
+    part=participantes.split(",")
+    for nombre in part:
+        if sanea_nombre(nombre) in claustro:
+            return "No"
+    
+    return "Si"
+
+
+def sanea_nombre(nombre):
+    """
+    Dado un nombre de profesor lo sanea eliminando tildes, espacios, puntos, guiones etc.
+    """
+    if not nombre:
+        return ""
+
+    nombre = nombre.lower()
+
+    # Quitar tildes/acentos
+    nombre = ''.join(
+        c for c in unicodedata.normalize('NFD', nombre)
+        if unicodedata.category(c) != 'Mn'
+    )
+
+    nombre = re.sub(r'[\s\.\,\-_/]+', '', nombre)
+    nombre = re.sub(r'[^a-z0-9]', '', nombre)
+
+    return nombre
+
 
 
 def dias_acceso_mas_reciente(accesos):
