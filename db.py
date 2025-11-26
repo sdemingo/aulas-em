@@ -151,20 +151,6 @@ def aula_abandonada(accesos):
     else:
         cond2=False
 
-    # for acceso in accesos:
-    #     info=acceso[3]
-    #     if "nunca" in info.lower():
-    #         cond2=cond2 and True 
-    #     else:
-    #         patron = r'(\d+)\s*año?'
-    #         m = re.search(patron, info, re.IGNORECASE)    
-    #         if m:
-    #             años = int(m.group(1))
-    #             if (años >=2):
-    #                 cond2=cond2 and True
-    #             else:
-    #                 cond2=cond2 and False
-
     return cond1 and cond2
 
 
