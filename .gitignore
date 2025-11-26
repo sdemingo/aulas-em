@@ -1,3 +1,4 @@
+*.xls*
 *.csv
 *.log
 key.py

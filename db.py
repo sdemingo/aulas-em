@@ -11,6 +11,9 @@ import csv
 import key     # credenciales de moodle
 from key import BASE_URL
 
+import report
+
+
 DATE_LAYOUT='%d/%m/%Y %H:%M'
 DATABASE="moodle.db"
 LOG_FILE="/tmp/sync.log"
@@ -47,7 +50,8 @@ def db_stats():
             cursor.execute("SELECT COUNT(*) FROM categorias where sync=True")
             n_categorias_sync= cursor.fetchone()[0]
 
-            cursor.execute("SELECT id,nombre,url FROM cursos where sync=True")
+            #cursor.execute("SELECT id,nombre,url FROM cursos where sync=True")
+            cursor.execute("SELECT id,nombre FROM cursos where sync=True")
             cursos_synced= cursor.fetchall()            
             
             for curso in cursos_synced:
@@ -77,8 +81,7 @@ def db_stats():
     print()
     print(f"\t * Número de registros almacenados en eventos: {n_registros}")
 
-    export_courses(cursos_vacios,cursos_casi_vacios)
-
+    report.generate_report(cursos_vacios,cursos_casi_vacios)
 
 
 def dias_acceso_mas_reciente(accesos):
@@ -165,23 +168,6 @@ def aula_abandonada(accesos):
     return cond1 and cond2
 
 
-
-def export_courses(vacias, casi_vacias):
-    
-    with open("aulas_vacias.csv", "w", encoding='utf-8') as vaciasfile:
-        vaciasfile.write("ID;NOMBRE;URL\n")
-        for a in vacias:
-            vaciasfile.write(";".join(str(i) for i in a)+"\n")
-        
-    vaciasfile.close()
-
-    with open("aulas_casi_vacias.csv", "w", encoding='utf-8') as casivaciasfile:
-        casivaciasfile.write("ID;NOMBRE;URL;Nº PARTICIPANTES;LISTA PARTICIPANTES;ACCESO MÁS RECIENTE;\n")
-        for a in casi_vacias:
-            casivaciasfile.write(";".join(str(i) for i in a)+"\n")
-        
-    casivaciasfile.close()
-        
 
     
 def log(conn, texto):
