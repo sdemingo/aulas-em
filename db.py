@@ -141,6 +141,8 @@ def dias_acceso_mas_reciente(accesos):
         info=acceso[3]
         if "nunca" in info.lower():
             reciente=1000000
+        elif ("horas" in info.lower()) and ("minutos" in info.lower()):
+            reciente=1
         else: 
             tiempo=reciente
             # 1) Caso con años y días
@@ -161,6 +163,7 @@ def dias_acceso_mas_reciente(accesos):
                 texto_antes = info[:m.start()]
                 if not re.search(r'\d+\s*años?\s*$', texto_antes, re.IGNORECASE):
                     tiempo =  dias
+
 
             if (tiempo < reciente):
                 reciente = tiempo
